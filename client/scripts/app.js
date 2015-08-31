@@ -3,21 +3,18 @@ var makeApp = function(){
   var instance = {};
   var chatlog = [];
   var _id;
+  var _room;
   var rooms = {};
+  var friends = {};
+
   instance.server = 'https://api.parse.com/1/classes/chatterbox';
 
   instance.init = function(){
     _id = prompt("Please type in your user name. ");
+    instance.addRoom( prompt("Please type chatroom you want to enter. ") );
     instance.fetch();
 
-    $('.sendMessage').click(function(){
-      var message = {
-        'username': _id,
-        'text':     $('input[name="message"]').val(), 
-        'roomname': "lobby"
-      };
-      instance.send(message);
-    });
+    $('.submit').click(instance.handleSubmit);
 
     setInterval(function(){instance.fetch();}, 5000);
   }
@@ -33,9 +30,17 @@ var makeApp = function(){
 
         var $chats = $('#chats');
         instance.clearMessages();
-        for(var i = 9; i >= 0; i--){
-          instance.addMessage(chatlog[i]);
+        var currentRoom = $("#roomSelect").val();
+        var messageCount = 0;
+        var i=0;
+        while(messageCount<10 && i < chatlog.length){
+          if( currentRoom === chatlog[i].roomname ){
+            instance.addMessage(chatlog[i]);
+            messageCount++;
+          }
+          i++;
         }
+        instance.addRoomsFromChatLog(chatlog);
       },
       error: function (data) {
         // See: https://developer.mozilla.org/en-US/docs/Web/API/console.error
@@ -74,13 +79,22 @@ var makeApp = function(){
 
     var $text = $('<p></p>');
     $text.text(message.text);
+
+    if(message.username in friends){
+      $text.css({'font-weight': 'bold'});
+    }
     $message.append($text);
 
     $('#chats').prepend($message);
+    $('.username').click(function(){
+        instance.addFriend(this.textContent);
+    });
   };
 
   instance.addRoom = function(roomname){
+
     if(!(roomname in rooms)){
+      rooms[roomname] = true;
       var $room = $('<option></option>');
       $room.val(roomname);
       $room.text(roomname);
@@ -88,12 +102,33 @@ var makeApp = function(){
     }
   };
 
+  instance.addRoomsFromChatLog = function(log){
+    for(var i=0; i< log.length; i++){
+      instance.addRoom(log[i].roomname);
+    }
+  };
+
+  instance.addFriend = function(username){
+    if(!friends[username]){
+      friends[username] = true;
+    }
+  }
+
+  instance.handleSubmit = function(){
+    var message = {
+      'username': _id,
+      'text':     $('#message').val(), 
+      'roomname': "lobby"
+    };
+    instance.send(message);
+  };
+
   return instance;
 };
 
 var app = makeApp();
 
-//$(document).ready(app.init);
+$(document).ready(app.init);
 
 
 // curl -X GET \
