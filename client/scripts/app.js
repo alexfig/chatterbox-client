@@ -2,7 +2,7 @@
 var makeApp = function(){
   var instance = {};
   var chatlog = [];
-  var _id;
+  var _id = prompt("Please type in your user name. ");
   var _room;
   var rooms = {};
   var friends = {};
@@ -10,13 +10,14 @@ var makeApp = function(){
   instance.server = 'https://api.parse.com/1/classes/chatterbox';
 
   instance.init = function(){
-    _id = prompt("Please type in your user name. ");
+    //_id = prompt("Please type in your user name. ");
     instance.addRoom( prompt("Please type chatroom you want to enter. ") );
+    console.log($('#roomSelect').val());
     instance.fetch();
 
     $('.submit').click(instance.handleSubmit);
 
-    setInterval(function(){instance.fetch();}, 5000);
+    setInterval(function(){instance.fetch();}, 1000);
   }
 
   instance.fetch = function(){
@@ -85,7 +86,7 @@ var makeApp = function(){
     }
     $message.append($text);
 
-    $('#chats').prepend($message);
+    $('#chats').append($message);
     $('.username').click(function(){
         instance.addFriend(this.textContent);
     });
@@ -118,7 +119,7 @@ var makeApp = function(){
     var message = {
       'username': _id,
       'text':     $('#message').val(), 
-      'roomname': "lobby"
+      'roomname': $('#roomSelect').val()
     };
     instance.send(message);
   };
@@ -129,9 +130,3 @@ var makeApp = function(){
 var app = makeApp();
 
 $(document).ready(app.init);
-
-
-// curl -X GET \
-//   -H "X-Parse-Application-Id: voLazbq9nXuZuos9hsmprUz7JwM2N0asnPnUcI7r" \
-//   -H "X-Parse-REST-API-Key: QC2F43aSAghM97XidJw8Qiy1NXlpL5LR45rhAVAf" \
-//   https://api.parse.com/1/classes/chatterbox
